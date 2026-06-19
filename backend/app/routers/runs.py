@@ -21,6 +21,8 @@ def create_run(run: schemas.RunCreate, db: Session = Depends(get_db)):
 
 @router.post("/import-gpx", response_model=schemas.RunOut)
 async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
+    if not file.filename or not file.filename.lower().endswith(".gpx"):
+        raise HTTPException(status_code=400, detail="File must be a .gpx file")
     try:
         contents = await file.read()
         gpx = gpxpy.parse(contents.decode("utf-8"))

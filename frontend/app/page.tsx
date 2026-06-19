@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 async function getRuns() {
   const res = await fetch("http://localhost:8000/runs/", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch runs");
@@ -9,6 +11,9 @@ export default async function Home() {
 
   return (
     <main className="p-8">
+      <Link href="/import" className="text-blue-600 underline mb-4 inline-block">
+        Import GPX
+      </Link>
       <h1 className="text-2xl font-bold mb-4">Runs</h1>
       {runs.length === 0 ? (
         <p className="text-gray-500">No runs yet.</p>
