@@ -2,9 +2,11 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Enum
 import enum
 from .database import Base
 
+
 class SourceType(str, enum.Enum):
     manual = "manual"
     gpx = "gpx"
+
 
 class Run(Base):
     __tablename__ = "runs"

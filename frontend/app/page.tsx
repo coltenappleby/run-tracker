@@ -11,8 +11,14 @@ export default async function Home() {
 
   return (
     <main className="p-8">
-      <Link href="/import" className="text-blue-600 underline mb-4 inline-block">
+      <Link
+        href="/import"
+        className="text-blue-600 underline mb-4 inline-block"
+      >
         Import GPX
+      </Link>
+      <Link href="/runs" className="text-blue-600 underline mb-4 inline-block">
+        All Runs
       </Link>
       <h1 className="text-2xl font-bold mb-4">Runs</h1>
       {runs.length === 0 ? (
