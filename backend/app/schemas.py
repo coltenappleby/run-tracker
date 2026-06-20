@@ -19,6 +19,9 @@ class RunCreate(RunBase):
 class RunOut(RunBase):
     id: int
     source: SourceType
+    avg_heart_rate_bpm: Optional[float] = None
+    max_heart_rate_bpm: Optional[float] = None
+    avg_cadence_spm: Optional[float] = None
 
     class Config:
         from_attributes = True

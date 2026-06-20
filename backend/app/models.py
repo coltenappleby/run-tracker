@@ -18,3 +18,6 @@ class Run(Base):
     elevation_gain_m = Column(Float, nullable=True)
     notes = Column(String, nullable=True)
     source = Column(Enum(SourceType), default=SourceType.manual)
+    avg_heart_rate_bpm = Column(Float, nullable=True)
+    max_heart_rate_bpm = Column(Float, nullable=True)
+    avg_cadence_spm = Column(Float, nullable=True)

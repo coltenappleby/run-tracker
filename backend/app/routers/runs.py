@@ -8,6 +8,16 @@ from .. import models, schemas
 router = APIRouter(prefix="/runs", tags=["runs"])
 
 
+def _ext_value(extensions, tag: str):
+    """Return the text of the first child element matching a local tag name across all extensions."""
+    for ext in extensions:
+        for child in ext:
+            local = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+            if local == tag and child.text:
+                return child.text
+    return None
+
+
 @router.get("/", response_model=list[schemas.RunOut])
 def list_runs(db: Session = Depends(get_db)):
     return db.query(models.Run).order_by(models.Run.date.desc()).all()
@@ -41,6 +51,21 @@ async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
         if start_time is None:
             raise ValueError("GPX file has no timestamps")
 
+        hr_values = []
+        cad_values = []
+        for point in segment.points:
+            if point.extensions:
+                hr = _ext_value(point.extensions, "hr")
+                if hr is not None:
+                    hr_values.append(float(hr))
+                cad = _ext_value(point.extensions, "cad")
+                if cad is not None:
+                    cad_values.append(float(cad))
+
+        avg_heart_rate_bpm = round(sum(hr_values) / len(hr_values), 1) if hr_values else None
+        max_heart_rate_bpm = max(hr_values) if hr_values else None
+        avg_cadence_spm = round(sum(cad_values) / len(cad_values), 1) if cad_values else None
+
     except (IndexError, AttributeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=f"Could not parse GPX file: {e}")
 
@@ -50,6 +75,9 @@ async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
         duration_seconds=duration_seconds,
         elevation_gain_m=round(elevation_gain_m, 1) if elevation_gain_m else None,
         source=models.SourceType.gpx,
+        avg_heart_rate_bpm=avg_heart_rate_bpm,
+        max_heart_rate_bpm=max_heart_rate_bpm,
+        avg_cadence_spm=avg_cadence_spm,
     )
 
     db.add(db_run)
