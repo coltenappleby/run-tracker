@@ -62,9 +62,13 @@ async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
                 if cad is not None:
                     cad_values.append(float(cad))
 
-        avg_heart_rate_bpm = round(sum(hr_values) / len(hr_values), 1) if hr_values else None
+        avg_heart_rate_bpm = (
+            round(sum(hr_values) / len(hr_values), 1) if hr_values else None
+        )
         max_heart_rate_bpm = max(hr_values) if hr_values else None
-        avg_cadence_spm = round(sum(cad_values) / len(cad_values), 1) if cad_values else None
+        avg_cadence_spm = (
+            round(sum(cad_values) / len(cad_values), 1) if cad_values else None
+        )
 
     except (IndexError, AttributeError, ValueError) as e:
         raise HTTPException(status_code=400, detail=f"Could not parse GPX file: {e}")
@@ -83,4 +87,41 @@ async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
     db.add(db_run)
     db.commit()
     db.refresh(db_run)
+
+    for i, point in enumerate(segment.points):
+        hr = None
+        cadence = None
+        course = None
+        h_acc = None
+        v_acc = None
+
+        if point.extensions:
+            for ext in point.extensions:
+                tag = ext.tag.split("}")[-1].lower()
+                if tag == "hr":
+                    hr = int(ext.text)
+                elif tag in ("cad", "cadence"):
+                    cadence = int(ext.text)
+                elif tag == "course":
+                    course = float(ext.text)
+                elif tag == "hacc":
+                    h_acc = float(ext.text)
+                elif tag == "vacc":
+                    v_acc = float(ext.text)
+
+        db.add(
+            models.RunPoint(
+                run_id=db_run.id,
+                sequence=i,
+                latitude=point.latitude,
+                longitude=point.longitude,
+                elevation=point.elevation,
+                time=point.time,
+                heart_rate=hr,
+                cadence=cadence,
+                course=course,
+                horizontal_accuracy=h_acc,
+                vertical_accuracy=v_acc,
+            )
+        )
     return db_run

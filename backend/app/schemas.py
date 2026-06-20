@@ -25,3 +25,19 @@ class RunOut(RunBase):
 
     class Config:
         from_attributes = True
+
+
+class RunPointOut(BaseModel):
+    sequence: int
+    latitude: float
+    longitude: float
+    elevation: Optional[float]
+    time: Optional[datetime]
+    heart_rate: Optional[int]
+    cadence: Optional[int]
+    course: Optional[float]
+    horizontal_accuracy: Optional[float]
+    vertical_accuracy: Optional[float]
+
+    class Config:
+        from_attributes = True
