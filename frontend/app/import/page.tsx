@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [fitFile, setFitFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "uploading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function ImportPage() {
 
     const formData = new FormData();
     formData.append("file", file);
+    if (fitFile) {
+      formData.append("fit_file", fitFile);
+    }
 
     try {
       const res = await fetch("http://localhost:8000/runs/import-gpx", {
@@ -49,6 +53,18 @@ export default function ImportPage() {
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="block w-full text-sm border rounded p-2"
         />
+
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">
+            FIT file (optional)
+          </label>
+          <input
+            type="file"
+            accept=".fit"
+            onChange={(e) => setFitFile(e.target.files?.[0] ?? null)}
+            className="block w-full text-sm border rounded p-2"
+          />
+        </div>
 
         <button
           type="submit"

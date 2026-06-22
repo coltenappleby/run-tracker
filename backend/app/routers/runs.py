@@ -1,6 +1,9 @@
+import io
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 import gpxpy
+from fitparse import FitFile, FitParseError
 
 from ..database import get_db
 from .. import models, schemas
@@ -33,9 +36,19 @@ def create_run(run: schemas.RunCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/import-gpx", response_model=schemas.RunOut)
-async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
+async def import_gpx(
+    file: UploadFile,
+    fit_file: UploadFile | None = None,
+    db: Session = Depends(get_db),
+):
     if not file.filename or not file.filename.lower().endswith(".gpx"):
         raise HTTPException(status_code=400, detail="File must be a .gpx file")
+    if fit_file is not None and (
+        not fit_file.filename or not fit_file.filename.lower().endswith(".fit")
+    ):
+        raise HTTPException(
+            status_code=400, detail="Companion file must be a .fit file"
+        )
     try:
         contents = await file.read()
         gpx = gpxpy.parse(contents.decode("utf-8"))
@@ -124,4 +137,40 @@ async def import_gpx(file: UploadFile, db: Session = Depends(get_db)):
                 vertical_accuracy=v_acc,
             )
         )
+    db.commit()
+
+    if fit_file is not None:
+        try:
+            fit_contents = await fit_file.read()
+            fit = FitFile(io.BytesIO(fit_contents))
+            for i, record in enumerate(fit.get_messages("record")):
+                values = record.get_values()
+
+                lat = values.get("position_lat")
+                lon = values.get("position_long")
+
+                db.add(
+                    models.FitPoint(
+                        run_id=db_run.id,
+                        sequence=i,
+                        time=values.get("timestamp"),
+                        latitude=lat * (180 / 2**31) if lat is not None else None,
+                        longitude=lon * (180 / 2**31) if lon is not None else None,
+                        altitude=values.get(
+                            "enhanced_altitude", values.get("altitude")
+                        ),
+                        heart_rate=values.get("heart_rate"),
+                        cadence=values.get("cadence"),
+                        distance_m=values.get("distance"),
+                        speed_mps=values.get("enhanced_speed", values.get("speed")),
+                        power_w=values.get("power"),
+                        temperature_c=values.get("temperature"),
+                    )
+                )
+        except (FitParseError, IndexError, AttributeError, ValueError) as e:
+            raise HTTPException(
+                status_code=400, detail=f"Could not parse FIT file: {e}"
+            )
+        db.commit()
+
     return db_run

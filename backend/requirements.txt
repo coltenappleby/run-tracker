@@ -5,6 +5,7 @@ anyio==4.14.0
 black==26.5.1
 click==8.4.1
 fastapi==0.137.2
+fitparse==1.2.0
 gpxpy==1.6.2
 greenlet==3.5.2
 h11==0.16.0

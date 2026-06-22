@@ -26,6 +26,9 @@ class Run(Base):
     points = relationship(
         "RunPoint", back_populates="run", cascade="all, delete-orphan"
     )
+    fit_points = relationship(
+        "FitPoint", back_populates="run", cascade="all, delete-orphan"
+    )
 
 
 class RunPoint(Base):
@@ -45,3 +48,23 @@ class RunPoint(Base):
     vertical_accuracy = Column(Float, nullable=True)  # meters
 
     run = relationship("Run", back_populates="points")
+
+
+class FitPoint(Base):
+    __tablename__ = "fit_points"
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_id = Column(Integer, ForeignKey("runs.id"), nullable=False)
+    sequence = Column(Integer, nullable=False)
+    time = Column(DateTime, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    altitude = Column(Float, nullable=True)
+    heart_rate = Column(Integer, nullable=True)
+    cadence = Column(Integer, nullable=True)
+    distance_m = Column(Float, nullable=True)
+    speed_mps = Column(Float, nullable=True)
+    power_w = Column(Integer, nullable=True)
+    temperature_c = Column(Float, nullable=True)
+
+    run = relationship("Run", back_populates="fit_points")

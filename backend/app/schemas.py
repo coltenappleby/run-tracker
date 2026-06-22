@@ -41,3 +41,20 @@ class RunPointOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FitPointOut(BaseModel):
+    sequence: int
+    time: Optional[datetime]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    altitude: Optional[float]
+    heart_rate: Optional[int]
+    cadence: Optional[int]
+    distance_m: Optional[float]
+    speed_mps: Optional[float]
+    power_w: Optional[int]
+    temperature_c: Optional[float]
+
+    class Config:
+        from_attributes = True
