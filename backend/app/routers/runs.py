@@ -26,6 +26,14 @@ def list_runs(db: Session = Depends(get_db)):
     return db.query(models.Run).order_by(models.Run.date.desc()).all()
 
 
+@router.get("/{run_id}", response_model=schemas.RunDetailOut)
+def get_run(run_id: int, db: Session = Depends(get_db)):
+    run = db.query(models.Run).filter(models.Run.id == run_id).first()
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return run
+
+
 @router.post("/", response_model=schemas.RunOut)
 def create_run(run: schemas.RunCreate, db: Session = Depends(get_db)):
     db_run = models.Run(**run.model_dump(), source=models.SourceType.manual)

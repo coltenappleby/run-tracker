@@ -58,3 +58,8 @@ class FitPointOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RunDetailOut(RunOut):
+    points: list[RunPointOut] = []
+    fit_points: list[FitPointOut] = []

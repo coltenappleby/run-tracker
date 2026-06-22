@@ -24,10 +24,16 @@ class Run(Base):
     avg_cadence_spm = Column(Float, nullable=True)
 
     points = relationship(
-        "RunPoint", back_populates="run", cascade="all, delete-orphan"
+        "RunPoint",
+        back_populates="run",
+        cascade="all, delete-orphan",
+        order_by="RunPoint.sequence",
     )
     fit_points = relationship(
-        "FitPoint", back_populates="run", cascade="all, delete-orphan"
+        "FitPoint",
+        back_populates="run",
+        cascade="all, delete-orphan",
+        order_by="FitPoint.sequence",
     )
 
 

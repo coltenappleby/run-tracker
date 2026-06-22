@@ -1,17 +1,7 @@
+import Link from "next/link";
 import Table, { TableColumn } from "@/components/Table";
-
-type Run = {
-  id: number;
-  date: string;
-  distance_km: number;
-  duration_seconds: number;
-  elevation_gain_m: number | null;
-  notes: string | null;
-  source: "manual" | "gpx";
-  avg_heart_rate_bpm: number | null;
-  max_heart_rate_bpm: number | null;
-  avg_cadence_spm: number | null;
-};
+import { formatDuration } from "@/lib/format";
+import type { Run } from "@/lib/types";
 
 async function getRuns(): Promise<Run[]> {
   const res = await fetch("http://localhost:8000/runs/", { cache: "no-store" });
@@ -19,20 +9,15 @@ async function getRuns(): Promise<Run[]> {
   return res.json();
 }
 
-function formatDuration(totalSeconds: number) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const mm = String(minutes).padStart(2, "0");
-  const ss = String(seconds).padStart(2, "0");
-  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
-}
-
 const columns: TableColumn<Run>[] = [
   {
     key: "date",
     header: "Date",
-    render: (run) => new Date(run.date).toLocaleDateString(),
+    render: (run) => (
+      <Link href={`/runs/${run.id}`} className="text-blue-600 underline">
+        {new Date(run.date).toLocaleDateString()}
+      </Link>
+    ),
   },
   {
     key: "distance",
